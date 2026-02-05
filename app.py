@@ -28,10 +28,10 @@ PDF_FOLDER = 'archivos_pdf'
 if not os.path.exists(PDF_FOLDER):
     os.makedirs(PDF_FOLDER)
 
-# URL del Escudo de la UCE (Transparente) para usar en la app
+# URL del Escudo (Usando el nombre que tú definiste)
 LOGO_URL = "UCELOGO.png"
 
-# --- 2. FUNCIONES DE LÓGICA (Backend - Sin Cambios Importantes) ---
+# --- 2. FUNCIONES DE LÓGICA (Backend) ---
 
 def conseguir_modelo_disponible():
     try:
@@ -91,12 +91,67 @@ def buscar_informacion(pregunta, textos, fuentes):
         return contexto if hay_relevancia else ""
     except: return ""
 
-# --- 3. INTERFACES GRÁFICAS (Adaptadas a la UCE) ---
+# --- 3. DISEÑO VISUAL (Footer Personalizado) ---
+
+def footer_personalizado():
+    """
+    Esta función inyecta CSS para fijar los créditos en la parte inferior,
+    reemplazando visualmente el disclaimer estándar de Streamlit/Gemini.
+    """
+    estilos = """
+    <style>
+        .footer-credits {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: #ffffff;
+            color: #444;
+            text-align: center;
+            font-size: 13px;
+            padding: 12px;
+            border-top: 2px solid #C59200; /* Línea dorada UCE */
+            z-index: 9999;
+            font-family: sans-serif;
+            box-shadow: 0px -2px 5px rgba(0,0,0,0.1);
+        }
+        .footer-names {
+            font-weight: bold;
+            color: #002F6C; /* Azul UCE */
+            margin-bottom: 4px;
+        }
+        .footer-tech {
+            font-size: 11px;
+            color: #666;
+        }
+        /* Añadir espacio al final de la página para que el footer no tape el chat */
+        div[data-testid="stBottom"] {
+            padding-bottom: 70px;
+        }
+        /* Ocultar el footer estándar de Streamlit si aparece */
+        footer {visibility: hidden;}
+    </style>
+
+    <div class="footer-credits">
+        <div class="footer-names">
+            Hecho por: Altamirano Isis, Castillo Alexander, Chalán David, Flores Bryan, Cabezas Jhampierre
+        </div>
+        <div class="footer-tech">
+            Proyecto Académico | Powered by Google Gemini API | Algoritmos: TF-IDF, Cosine Similarity & RAG Architecture.
+        </div>
+    </div>
+    """
+    st.markdown(estilos, unsafe_allow_html=True)
+
+# --- 4. INTERFACES GRÁFICAS (Adaptadas a la UCE) ---
 
 def sidebar_uce():
     with st.sidebar:
-        # Mostrar Logo UCE
-        st.image(LOGO_URL, width=150)
+        try:
+            st.image(LOGO_URL, width=150)
+        except:
+            st.header("UCE") # Fallback si no carga la imagen
+            
         st.markdown("## Universidad Central del Ecuador")
         st.markdown("**Asistente Inteligente de Facultad**")
         st.divider()
@@ -139,6 +194,9 @@ def interfaz_gestor_archivos():
                     eliminar_archivo(f)
                     st.toast(f"Documento eliminado: {f}")
                     st.rerun()
+    
+    # Inyectamos el footer también aquí
+    footer_personalizado()
 
 def interfaz_chat():
     st.header("💬 Asistente Académico UCE")
@@ -159,6 +217,10 @@ def interfaz_chat():
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+
+    # --- LLAMADA AL FOOTER ---
+    # Lo llamamos antes del input para asegurar que el CSS se cargue
+    footer_personalizado()
 
     if prompt := st.chat_input("¿En qué puedo ayudarte hoy?"):
         st.session_state.messages.append({"role": "user", "content": prompt})
@@ -209,6 +271,6 @@ def main():
         interfaz_chat()
 
 if __name__ == "__main__":
-
     main()
+
 
