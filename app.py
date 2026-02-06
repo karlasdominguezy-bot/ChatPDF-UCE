@@ -11,9 +11,10 @@ import re
 load_dotenv()
 api_key = os.getenv("GOOGLE_API_KEY")
 
+# Configuración de página
 st.set_page_config(
-    page_title="Asistente FICA - UCE", 
-    page_icon="🎓", 
+    page_title="Asistente Académico UCE", 
+    page_icon="🏛️", 
     layout="wide"
 )
 
@@ -27,10 +28,8 @@ PDF_FOLDER = 'archivos_pdf'
 if not os.path.exists(PDF_FOLDER):
     os.makedirs(PDF_FOLDER)
 
-# --- RECURSOS GRÁFICOS ---
-# Asegúrate de tener estas imágenes en tu carpeta
-LOGO_URL = "UCELOGO.png"       # El escudo de la UCE
-AVATAR_URL = "avatar_uce.png"  # ¡TU NUEVO AVATAR!
+# Logo UCE
+LOGO_URL = "UCELOGO.png"
 
 # --- 2. FUNCIONES DE LÓGICA (Backend) ---
 
@@ -92,7 +91,7 @@ def buscar_informacion(pregunta, textos, fuentes):
         return contexto if hay_relevancia else ""
     except: return ""
 
-# --- 3. DISEÑO VISUAL ---
+# --- 3. DISEÑO VISUAL (Footer Personalizado) ---
 
 def footer_personalizado():
     estilos = """
@@ -147,12 +146,16 @@ def sidebar_uce():
         except:
             st.header("UCE")
             
+        # --- SECCIÓN MODIFICADA: DATOS DE FACULTAD Y CARRERA ---
         st.markdown("## Universidad Central del Ecuador")
+        
         st.markdown("### FICA")
         st.markdown("**Facultad de Ingeniería y Ciencias Aplicadas**")
         st.markdown("Carrera de Sistemas de Información")
+        # -------------------------------------------------------
         
         st.divider()
+        
         st.title("Navegación")
         opcion = st.radio("Selecciona una opción:", ["💬 Chat Estudiantil", "📂 Gestión de Bibliografía"])
         
@@ -163,99 +166,92 @@ def sidebar_uce():
 def interfaz_gestor_archivos():
     st.header("📂 Gestión de Bibliografía UCE")
     st.info("Sube aquí los sílabos, libros o papers para que los estudiantes puedan consultarlos.")
+    st.markdown("---")
     
     col1, col2 = st.columns([1, 2])
+    
     with col1:
         uploaded_files = st.file_uploader("Cargar documentos PDF", type="pdf", accept_multiple_files=True)
         if uploaded_files:
             if st.button("Procesar Documentos", type="primary"):
-                for file in uploaded_files: guardar_archivo(file)
-                st.success("✅ Documentos indexados.")
+                contador = 0
+                for file in uploaded_files:
+                    guardar_archivo(file)
+                    contador += 1
+                st.success(f"✅ {contador} documentos añadidos a la base de conocimiento.")
                 st.rerun()
 
     with col2:
-        st.subheader("📚 Base de Conocimiento:")
+        st.subheader("📚 Documentos Disponibles:")
         archivos = os.listdir(PDF_FOLDER)
-        if not archivos: st.warning("Vacío.")
+        if not archivos:
+            st.warning("No hay material cargado aún.")
         else:
             for f in archivos:
                 c1, c2 = st.columns([4, 1])
                 c1.text(f"📄 {f}")
-                if c2.button("🗑️", key=f):
+                if c2.button("🗑️", key=f, help="Borrar"):
                     eliminar_archivo(f)
+                    st.toast(f"Documento eliminado: {f}")
                     st.rerun()
+    
     footer_personalizado()
 
 def interfaz_chat():
-    # --- CABECERA CON AVATAR ---
-    col_a, col_b = st.columns([1, 5])
-    with col_a:
-        # Si existe el avatar, lo mostramos grande como bienvenida
-        if os.path.exists(AVATAR_URL):
-            st.image(AVATAR_URL, width=100)
-        else:
-            st.markdown("🤖")
-    with col_b:
-        st.header("Tutor Virtual FICA")
-        st.caption("Facultad de Ingeniería y Ciencias Aplicadas - UCE")
-
-    # Verificación de conexión
+    st.header("💬 Asistente Académico UCE")
+    st.caption("Plataforma de asistencia estudiantil basada en Inteligencia Artificial.")
+    
     modelo, status = conseguir_modelo_disponible()
     if not modelo:
-        st.error(f"Error: {status}")
+        st.error(f"Error de conexión: {status}")
         st.stop()
     
-    # Mensaje de bienvenida condicional
     archivos = os.listdir(PDF_FOLDER)
+    
     if not archivos:
         st.info("""
-        **👋 ¡Hola compañero! Soy tu asistente virtual.**
+        **👋 ¡Bienvenido al Chat de Ingeniería!**
         
-        Todavía no tengo documentos para leer.
-        Por favor ve a la pestaña **"📂 Gestión"** y sube el material de clase para empezar.
+        Actualmente no hay bibliografía cargada en el sistema. Tienes dos opciones:
+        1. **Chatear libremente:** Puedo responder preguntas usando mi conocimiento general.
+        2. **Cargar Material:** Ve a la pestaña **"📂 Gestión de Bibliografía"** para subir los PDFs del curso.
         """)
     
-    # Historial de Chat
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # --- RENDERIZADO DEL CHAT CON AVATAR ---
-    # Aquí definimos qué imagen usa cada uno
-    # Si no tienes imagen de avatar, usará 'assistant' (el robot por defecto)
-    avatar_bot = AVATAR_URL if os.path.exists(AVATAR_URL) else "assistant"
-    avatar_user = "👤" # Icono genérico para el usuario
-
     for message in st.session_state.messages:
-        # Elegimos el icono según quién hable
-        icono = avatar_bot if message["role"] == "assistant" else avatar_user
-        
-        with st.chat_message(message["role"], avatar=icono):
+        with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
     footer_personalizado()
 
-    # Input y Respuesta
-    if prompt := st.chat_input("Escribe tu consulta académica..."):
+    if prompt := st.chat_input("¿En qué puedo ayudarte hoy?"):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user", avatar=avatar_user):
+        with st.chat_message("user"):
             st.markdown(prompt)
 
-        with st.chat_message("assistant", avatar=avatar_bot):
+        with st.chat_message("assistant"):
             placeholder = st.empty()
-            placeholder.markdown("🔵 *Procesando consulta...*")
+            placeholder.markdown("🔵 *Consultando base de datos UCE...*")
             
             try:
                 textos, fuentes = leer_pdfs_locales()
                 contexto_pdf = buscar_informacion(prompt, textos, fuentes)
                 
                 prompt_sistema = f"""
-                Actúa como el Avatar Oficial de la Carrera de Sistemas de la UCE.
-                Eres servicial, técnico y preciso.
+                Actúa como un tutor académico de la Universidad Central del Ecuador (UCE).
+                Tu tono debe ser formal, académico pero cercano y motivador (estilo "Omnium Potentior Est Sapientia").
                 
-                CONTEXTO (RAG): {contexto_pdf}
+                CONTEXTO BIBLIOGRÁFICO:
+                {contexto_pdf}
+                
+                INSTRUCCIONES:
+                1. Si la respuesta está en los documentos, explícala con claridad y cita la fuente.
+                2. Si no está, usa tu conocimiento general para guiar al estudiante.
+                3. Trata al usuario como "compañero" o "estudiante".
+                
                 PREGUNTA: {prompt}
-                
-                Responde basándote en el contexto si existe. Cita fuentes.
                 """
                 
                 model = genai.GenerativeModel(modelo)
@@ -263,13 +259,15 @@ def interfaz_chat():
                 
                 placeholder.markdown(response.text)
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
+                
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error(f"Error del sistema: {e}")
 
 # --- 4. MAIN ---
 
 def main():
     opcion = sidebar_uce()
+
     if opcion == "📂 Gestión de Bibliografía":
         interfaz_gestor_archivos()
     elif opcion == "💬 Chat Estudiantil":
