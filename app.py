@@ -108,13 +108,13 @@ def buscar_informacion(pregunta, textos, fuentes):
 def estilos_globales():
     estilos = """
     <style>
-        /* 1. Ocultar scroll general de la página para dar efecto de app */
+        /* 1. Ocultar scroll general */
         ::-webkit-scrollbar {
             width: 8px;
             background: transparent;
         }
 
-        /* 2. Footer Fijo (Tal cual lo pediste) */
+        /* 2. Footer Fijo */
         .footer-credits {
             position: fixed;
             left: 0;
@@ -130,7 +130,7 @@ def estilos_globales():
             font-family: sans-serif;
         }
         
-        /* 3. Ajuste para que el input no quede tapado por el footer */
+        /* 3. Ajuste input */
         div[data-testid="stBottom"] {
             padding-bottom: 40px; 
             background-color: transparent;
@@ -158,6 +158,11 @@ def estilos_globales():
             color: #444;
             margin-bottom: 5px;
         }
+        
+        /* CSS Extra para alinear verticalmente el logo y el título */
+        [data-testid="stVerticalBlock"] > [style*="flex-direction: row"] {
+            align-items: center;
+        }
     </style>
 
     <div class="footer-credits">
@@ -175,8 +180,7 @@ def estilos_globales():
 
 def sidebar_uce():
     with st.sidebar:
-        if os.path.exists(LOGO_URL):
-            st.image(LOGO_URL, width=150)
+        # Quitamos el logo de aquí porque ahora estará en el título principal
         st.markdown("### UCE - FICA")
         st.divider()
         st.title("Navegación")
@@ -187,11 +191,13 @@ def sidebar_uce():
 def interfaz_gestor_archivos():
     estilos_globales()
     
-    col_l, col_r = st.columns([1, 6])
-    with col_l:
-        if os.path.exists(LOGO_URL): st.image(LOGO_URL, width=80)
-    with col_r:
+    # Encabezado con Logo a la izquierda del título (Usando columnas anidadas)
+    col_hl, col_ht = st.columns([0.8, 5]) # Proporción: Logo pequeño, Texto grande
+    with col_hl:
+        if os.path.exists(LOGO_URL): st.image(LOGO_URL, width=90)
+    with col_ht:
         st.header("Gestión de Bibliografía")
+    # -----------------------------------------------------------------------
     
     col_avatar, col_contenido = st.columns([1, 3])
     
@@ -237,18 +243,14 @@ def interfaz_gestor_archivos():
 def interfaz_chat():
     estilos_globales()
     
-    # --- ESTRUCTURA DE 2 COLUMNAS PURA ---
-    # Izquierda (30%): Avatar SOLO
-    # Derecha (70%): Títulos, Info, Chat Window y Prompt
     col_izquierda, col_derecha = st.columns([1.2, 3])
     
     # === COLUMNA 1: AVATAR ESTÁTICO ===
     with col_izquierda:
         if os.path.exists(AVATAR_URL):
             img_b64 = get_img_as_base64(AVATAR_URL)
-            # Renderizamos el avatar grande ocupando su columna
             st.markdown(f"""
-                <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+                <div style="display: flex; justify-content: center; align-items: center; height: 90vh;">
                     <img src="data:image/gif;base64,{img_b64}" style="width: 100%; max-width: 450px; border-radius: 20px;">
                 </div>
             """, unsafe_allow_html=True)
@@ -257,9 +259,18 @@ def interfaz_chat():
 
     # === COLUMNA 2: ÁREA DE INTERACCIÓN ===
     with col_derecha:
-        # 1. ENCABEZADO (Títulos)
-        st.markdown("## 💬 Asistente Virtual") 
-        st.markdown("#### Ing. Condoi - Tu Tutor Virtual de la FICA")
+        # 1. ENCABEZADO (Logo UCE + Títulos) --- AQUÍ ESTÁ EL CAMBIO ---
+        # Creamos sub-columnas para poner el logo junto al texto
+        col_hl, col_ht = st.columns([0.8, 5]) # [Logo pequeño, Texto grande]
+
+        with col_hl:
+            if os.path.exists(LOGO_URL):
+                st.image(LOGO_URL, width=90) # Logo ajustado
+
+        with col_ht:
+            st.markdown("## 💬 Asistente Virtual") 
+            st.markdown("#### Ing. Condoi - Tu Tutor Virtual de la FICA")
+        # -------------------------------------------------------------
         
         # 2. MENSAJE DE BIENVENIDA FIJO
         st.info("""
@@ -269,7 +280,6 @@ def interfaz_chat():
         """)
 
         # 3. VENTANA DE CHAT (SCROLLEABLE)
-        # Usamos height=480 (o ajusta a tu gusto) para crear la "pantallita" con scroll
         contenedor_chat = st.container(height=480, border=True)
 
         modelo, status = conseguir_modelo_disponible()
@@ -280,7 +290,6 @@ def interfaz_chat():
         if "messages" not in st.session_state:
             st.session_state.messages = []
 
-        # Todo lo que está dentro de este 'with' tendrá scroll independiente
         with contenedor_chat:
             avatar_bot = AVATAR_URL if os.path.exists(AVATAR_URL) else "assistant"
             avatar_user = "👤"
@@ -290,8 +299,7 @@ def interfaz_chat():
                 with st.chat_message(message["role"], avatar=icono):
                     st.markdown(message["content"])
 
-        # 4. INPUT DE PROMPTS (Se coloca automáticamente al final de la columna)
-        # Al estar fuera del contenedor, se queda fijo abajo del chat
+        # 4. INPUT DE PROMPTS
         if prompt := st.chat_input("Escribe tu consulta aquí..."):
             st.session_state.messages.append({"role": "user", "content": prompt})
             st.rerun()
@@ -300,7 +308,7 @@ def interfaz_chat():
         if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
             prompt = st.session_state.messages[-1]["content"]
             
-            with contenedor_chat: # IMPORTANTE: La respuesta va dentro de la ventana de scroll
+            with contenedor_chat:
                  with st.chat_message("assistant", avatar=avatar_bot):
                     placeholder = st.empty()
                     placeholder.markdown("🦅 *Procesando...*")
