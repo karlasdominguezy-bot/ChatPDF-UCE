@@ -93,11 +93,12 @@ def buscar_informacion(pregunta, textos, fuentes):
         return contexto if hay_relevancia else "" 
     except: return "" 
 
-# --- 3. DISEÑO VISUAL (Footer + CSS AVATAR GIGANTE) --- 
+# --- 3. DISEÑO VISUAL (Footer + HACK CSS AVATAR) --- 
 
 def footer_personalizado(): 
     estilos = """ 
     <style> 
+        /* Footer fijo abajo */
         .footer-credits { 
             position: fixed; 
             left: 0; 
@@ -127,27 +128,27 @@ def footer_personalizado():
         } 
         footer {visibility: hidden;} 
 
-        /* --- CÓDIGO CSS POTENCIADO PARA AVATAR --- */
+        /* --- HACK AGRESIVO PARA AGRANDAR AVATAR --- */
         
-        /* 1. El contenedor del avatar (Círculo/Cuadrado) */
+        /* 1. El contenedor del icono */
         [data-testid="stChatMessageAvatar"] {
-            width: 100px !important;  /* TAMAÑO MUY GRANDE (Antes 30px) */
-            height: 100px !important;
-            background-color: transparent !important;
-            border-radius: 10px !important; /* Opcional: bordes un poco cuadrados */
+            width: 85px !important;
+            height: 85px !important;
+            border-radius: 50% !important; /* Opcional: hazlo redondo */
+            margin-right: 15px !important; /* Separarlo un poco del texto */
         }
         
         /* 2. La imagen dentro del contenedor */
         [data-testid="stChatMessageAvatar"] img {
-            min-width: 100px !important;
-            min-height: 100px !important;
-            object-fit: cover !important; /* Esto ayuda a que llene el espacio */
+            width: 85px !important;
+            height: 85px !important;
+            object-fit: contain !important; /* Ajuste para que no se corte */
         }
         
-        /* 3. El icono de usuario (para que no se vea enano al lado del bot) */
+        /* 3. El icono SVG (usuario) también grande para que no desentone */
         [data-testid="stChatMessageAvatar"] svg {
-            width: 60px !important;
-            height: 60px !important;
+            width: 50px !important;
+            height: 50px !important;
         }
     </style> 
 
@@ -186,6 +187,9 @@ def sidebar_uce():
         return opcion 
 
 def interfaz_gestor_archivos(): 
+    # Inyectamos estilos aquí también por si acaso
+    footer_personalizado()
+    
     st.header("📂 Gestión de Bibliografía UCE") 
     st.info("Sube aquí los sílabos, libros o papers para que los estudiantes puedan consultarlos.") 
     st.markdown("---") 
@@ -216,22 +220,24 @@ def interfaz_gestor_archivos():
                     eliminar_archivo(f) 
                     st.toast(f"Documento eliminado: {f}") 
                     st.rerun() 
-    
-    footer_personalizado() 
 
 def interfaz_chat(): 
-    # --- BIENVENIDA ---
+    # --- IMPORTANTE: Inyectar estilos AL INICIO para que el CSS cargue antes del chat ---
+    footer_personalizado() 
+    
+    # --- CABECERA (Bienvenida con Avatar Grande) ---
     col_avatar, col_texto = st.columns([1, 5])
     
     with col_avatar:
         if os.path.exists(AVATAR_URL):
-            st.image(AVATAR_URL, width=200) 
+            st.image(AVATAR_URL, width=200) # Imagen estática de bienvenida
         else:
             st.markdown("🤖")
             
     with col_texto:
         st.header("💬 Asistente Académico UCE") 
         st.caption("Plataforma de asistencia estudiantil basada en Inteligencia Artificial.") 
+    # -----------------------------------------------
 
     modelo, status = conseguir_modelo_disponible() 
     if not modelo: 
@@ -250,10 +256,6 @@ def interfaz_chat():
     if "messages" not in st.session_state: 
         st.session_state.messages = [] 
 
-    # --- INYECTAR ESTILOS ANTES DEL CHAT ---
-    footer_personalizado() 
-
-    # Lógica de iconos
     avatar_bot = AVATAR_URL if os.path.exists(AVATAR_URL) else "assistant"
     avatar_user = "👤"
 
