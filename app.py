@@ -105,9 +105,16 @@ def buscar_informacion(pregunta, textos, fuentes):
 
 # --- 3. DISEÑO VISUAL (CSS) ---
 
-def footer_personalizado():
+def estilos_globales():
     estilos = """
     <style>
+        /* 1. Ocultar scroll general de la página para dar efecto de app */
+        ::-webkit-scrollbar {
+            width: 8px;
+            background: transparent;
+        }
+
+        /* 2. Footer Fijo (Tal cual lo pediste) */
         .footer-credits {
             position: fixed;
             left: 0;
@@ -117,21 +124,22 @@ def footer_personalizado():
             color: #444;
             text-align: center;
             font-size: 13px;
-            padding: 12px;
+            padding: 8px;
             border-top: 2px solid #C59200;
-            z-index: 9999;
+            z-index: 99999;
             font-family: sans-serif;
-            box-shadow: 0px -2px 5px rgba(0,0,0,0.1);
         }
-        /* Ajuste para que el input no choque con el footer */
+        
+        /* 3. Ajuste para que el input no quede tapado por el footer */
         div[data-testid="stBottom"] {
-            padding-bottom: 50px; 
+            padding-bottom: 40px; 
+            background-color: transparent;
         }
 
-        /* Estilos Avatar Chat Pequeño */
+        /* 4. Estilos Burbujas Chat */
         [data-testid="stChatMessageAvatar"] {
-            width: 50px !important;
-            height: 50px !important;
+            width: 45px !important;
+            height: 45px !important;
             border-radius: 50% !important;
         }
         [data-testid="stChatMessageAvatar"] img {
@@ -153,55 +161,49 @@ def footer_personalizado():
     </style>
 
     <div class="footer-credits">
-        <div style="font-weight: bold; color: #002F6C;">
+        <div style="font-weight: bold; color: #002F6C; font-size: 12px;">
             Hecho por: Altamirano Isis, Castillo Alexander, Chalán David, Flores Bryan, Cabezas Jhampierre
         </div>
-        <div style="font-size: 11px; color: #666;">
+        <div style="font-size: 10px; color: #666;">
             Proyecto Académico | Powered by Google Gemini API
         </div>
     </div>
     """
     st.markdown(estilos, unsafe_allow_html=True)
 
-def encabezado_institucional():
-    col_logo, col_texto = st.columns([1, 6])
-    with col_logo:
-        try:
-            st.image(LOGO_URL, width=130) 
-        except:
-            st.error("Logo no encontrado")
-    with col_texto:
-        st.markdown("## Universidad Central del Ecuador")
-        st.markdown("#### FICA - Facultad de Ingeniería y Ciencias Aplicadas")
-        st.markdown("**Carrera de Sistemas de Información**")
-    st.divider()
-
 # --- 4. INTERFACES GRÁFICAS ---
 
 def sidebar_uce():
     with st.sidebar:
-        st.title("Navegación")
-        opcion = st.radio("Selecciona una opción:", ["💬 Chat con Ing. Condoi", "📂 Gestión de Bibliografía"])
+        if os.path.exists(LOGO_URL):
+            st.image(LOGO_URL, width=150)
+        st.markdown("### UCE - FICA")
         st.divider()
-        st.caption("© 2026 UCE - Ingeniería en Sistemas")
+        st.title("Navegación")
+        opcion = st.radio("Ir a:", ["💬 Chat con Ing. Condoi", "📂 Gestión de Bibliografía"])
+        st.divider()
         return opcion
 
 def interfaz_gestor_archivos():
-    footer_personalizado()
-    encabezado_institucional()
+    estilos_globales()
+    
+    col_l, col_r = st.columns([1, 6])
+    with col_l:
+        if os.path.exists(LOGO_URL): st.image(LOGO_URL, width=80)
+    with col_r:
+        st.header("Gestión de Bibliografía")
     
     col_avatar, col_contenido = st.columns([1, 3])
     
     with col_avatar:
         if os.path.exists(AVATAR_URL_GESTION):
             img_b64 = get_img_as_base64(AVATAR_URL_GESTION)
-            st.markdown(f'<img src="data:image/gif;base64,{img_b64}" style="width:100%; max-width: 350px;">', unsafe_allow_html=True)
+            st.markdown(f'<img src="data:image/gif;base64,{img_b64}" style="width:100%; max-width: 300px;">', unsafe_allow_html=True)
         elif os.path.exists(AVATAR_URL):
             img_b64 = get_img_as_base64(AVATAR_URL)
-            st.markdown(f'<img src="data:image/gif;base64,{img_b64}" style="width:100%; max-width: 350px;">', unsafe_allow_html=True)
+            st.markdown(f'<img src="data:image/gif;base64,{img_b64}" style="width:100%; max-width: 300px;">', unsafe_allow_html=True)
             
     with col_contenido:
-        st.header("📂 Gestión de Bibliografía") 
         st.info("Ayuda al Ing. Condoi a aprender subiendo los sílabos y libros aquí.") 
         st.markdown("---") 
         
@@ -218,10 +220,10 @@ def interfaz_gestor_archivos():
                     st.success(f"✅ {contador} documentos aprendidos.") 
                     st.rerun() 
         with col2: 
-            st.subheader("📚 Memoria del Ing. Condoi:") 
+            st.subheader("📚 Memoria:") 
             archivos = os.listdir(PDF_FOLDER) 
             if not archivos: 
-                st.warning("Memoria vacía. Sube archivos.") 
+                st.warning("Memoria vacía.") 
             else: 
                 for f in archivos: 
                     c1, c2 = st.columns([4, 1]) 
@@ -233,102 +235,98 @@ def interfaz_gestor_archivos():
                         st.rerun() 
 
 def interfaz_chat():
-    footer_personalizado()
+    estilos_globales()
     
-    # --- 1. ENCABEZADO FIJO (Institutional + Avatar Chat Header) ---
-    # Esto siempre se queda arriba
-    encabezado_institucional()
+    # --- ESTRUCTURA DE 2 COLUMNAS PURA ---
+    # Izquierda (30%): Avatar SOLO
+    # Derecha (70%): Títulos, Info, Chat Window y Prompt
+    col_izquierda, col_derecha = st.columns([1.2, 3])
     
-    # Creamos un layout para el encabezado del personaje (Avatar + Título)
-    col_head_avatar, col_head_info = st.columns([1, 4])
-    
-    with col_head_avatar:
-         if os.path.exists(AVATAR_URL):
+    # === COLUMNA 1: AVATAR ESTÁTICO ===
+    with col_izquierda:
+        if os.path.exists(AVATAR_URL):
             img_b64 = get_img_as_base64(AVATAR_URL)
-            # Avatar un poco más grande en el encabezado
-            st.markdown(f'<img src="data:image/gif;base64,{img_b64}" style="width:180px; max-width: 100%;">', unsafe_allow_html=True)
-         else:
+            # Renderizamos el avatar grande ocupando su columna
+            st.markdown(f"""
+                <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+                    <img src="data:image/gif;base64,{img_b64}" style="width: 100%; max-width: 450px; border-radius: 20px;">
+                </div>
+            """, unsafe_allow_html=True)
+        else:
             st.markdown("🤖")
-            
-    with col_head_info:
-        # Título y descripción alineados con el avatar
-        st.markdown("# 💬 Asistente Virtual") 
-        st.markdown("### Ing. Condoi - Tu Tutor Virtual de la FICA")
-    
-    st.markdown("---") # Separador entre el encabezado fijo y el chat
 
-    # --- 2. CONTENEDOR DE CHAT CON SCROLL INDEPENDIENTE ---
-    # Aquí está la MAGIA: height=500 crea una caja con scroll interno.
-    contenedor_chat = st.container(height=500, border=False)
-
-    modelo, status = conseguir_modelo_disponible()
-    if not modelo:
-        st.error(f"Error de conexión: {status}")
-        st.stop()
-    
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
-    # Todo lo que imprimamos dentro de 'with contenedor_chat:' se quedará en la cajita con scroll
-    with contenedor_chat:
-        # Mensaje de bienvenida dentro del flujo del chat
+    # === COLUMNA 2: ÁREA DE INTERACCIÓN ===
+    with col_derecha:
+        # 1. ENCABEZADO (Títulos)
+        st.markdown("## 💬 Asistente Virtual") 
+        st.markdown("#### Ing. Condoi - Tu Tutor Virtual de la FICA")
+        
+        # 2. MENSAJE DE BIENVENIDA FIJO
         st.info("""
         **🦅 ¡Hola compañero! Soy el Ing. Condoi.**
-        * Si quieres conversar sobre algún tema en general, ¡escribe abajo!
-        * Si necesitas que revise información específica, ve a **"Gestión de Bibliografía"** y dame los archivos.
+        Si quieres conversar sobre algún tema en general, ¡escribe abajo!
+        Si necesitas que revise información específica, ve a **"Gestión de Bibliografía"** y dame los archivos.
         """)
 
-        avatar_bot = AVATAR_URL if os.path.exists(AVATAR_URL) else "assistant"
-        avatar_user = "👤"
+        # 3. VENTANA DE CHAT (SCROLLEABLE)
+        # Usamos height=480 (o ajusta a tu gusto) para crear la "pantallita" con scroll
+        contenedor_chat = st.container(height=480, border=True)
 
-        for message in st.session_state.messages:
-            icono = avatar_bot if message["role"] == "assistant" else avatar_user
-            with st.chat_message(message["role"], avatar=icono):
-                st.markdown(message["content"])
-
-    # --- 3. INPUT (Se queda fijo abajo automáticamente por Streamlit) ---
-    if prompt := st.chat_input("Pregúntale al Ing. Condoi..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        st.rerun() # Recargamos para mostrar el mensaje del usuario
-
-    # Lógica de respuesta (se ejecuta al recargar)
-    if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-        prompt = st.session_state.messages[-1]["content"]
+        modelo, status = conseguir_modelo_disponible()
+        if not modelo:
+            st.error(f"Error de conexión: {status}")
+            st.stop()
         
-        # IMPORTANTE: La respuesta también debe imprimirse DENTRO del contenedor
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+
+        # Todo lo que está dentro de este 'with' tendrá scroll independiente
         with contenedor_chat:
-             with st.chat_message("assistant", avatar=avatar_bot):
-                placeholder = st.empty()
-                placeholder.markdown("🦅 *El Ing. Condoi está pensando...*")
-                
-                try:
-                    textos, fuentes = leer_pdfs_locales()
-                    contexto_pdf = buscar_informacion(prompt, textos, fuentes)
+            avatar_bot = AVATAR_URL if os.path.exists(AVATAR_URL) else "assistant"
+            avatar_user = "👤"
+
+            for message in st.session_state.messages:
+                icono = avatar_bot if message["role"] == "assistant" else avatar_user
+                with st.chat_message(message["role"], avatar=icono):
+                    st.markdown(message["content"])
+
+        # 4. INPUT DE PROMPTS (Se coloca automáticamente al final de la columna)
+        # Al estar fuera del contenedor, se queda fijo abajo del chat
+        if prompt := st.chat_input("Escribe tu consulta aquí..."):
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            st.rerun()
+
+        # Lógica de respuesta
+        if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+            prompt = st.session_state.messages[-1]["content"]
+            
+            with contenedor_chat: # IMPORTANTE: La respuesta va dentro de la ventana de scroll
+                 with st.chat_message("assistant", avatar=avatar_bot):
+                    placeholder = st.empty()
+                    placeholder.markdown("🦅 *Procesando...*")
                     
-                    prompt_sistema = f"""
-                    Tienes una identidad definida: Eres el **Ing. Condoi**.
-                    Eres el tutor virtual oficial (un águila/cóndor ingeniero) de la FICA (Facultad de Ingeniería y Ciencias Aplicadas) de la Universidad Central del Ecuador.
-                    
-                    Tu personalidad es:
-                    1. Profesional pero amigable y accesible para **cualquier estudiante** de la universidad.
-                    2. Motivador, usas frases como "¡Vamos compañero!", "Excelente pregunta", "Estamos aquí para aprender".
-                    3. Tratas al usuario como un **compañero universitario** en general, no solo como ingeniero.
-                    4. Siempre mencionas "según la documentación" si usas los PDFs.
-                    
-                    CONTEXTO (RAG):
-                    {contexto_pdf}
-                    
-                    PREGUNTA DEL ESTUDIANTE: {prompt}
-                    """
-                    
-                    model = genai.GenerativeModel(modelo)
-                    response = model.generate_content(prompt_sistema)
-                    
-                    placeholder.markdown(response.text)
-                    st.session_state.messages.append({"role": "assistant", "content": response.text})
-                    
-                except Exception as e:
-                    st.error(f"Error del sistema: {e}")
+                    try:
+                        textos, fuentes = leer_pdfs_locales()
+                        contexto_pdf = buscar_informacion(prompt, textos, fuentes)
+                        
+                        prompt_sistema = f"""
+                        Eres el **Ing. Condoi** (Tutor Virtual FICA - UCE).
+                        Identidad: Profesional, amable, compañero universitario.
+                        
+                        CONTEXTO:
+                        {contexto_pdf}
+                        
+                        PREGUNTA: {prompt}
+                        """
+                        
+                        model = genai.GenerativeModel(modelo)
+                        response = model.generate_content(prompt_sistema)
+                        
+                        placeholder.markdown(response.text)
+                        st.session_state.messages.append({"role": "assistant", "content": response.text})
+                        
+                    except Exception as e:
+                        st.error(f"Error: {e}")
 
 # --- 4. MAIN ---
 
