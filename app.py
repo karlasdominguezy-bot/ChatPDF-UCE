@@ -28,8 +28,9 @@ PDF_FOLDER = 'archivos_pdf'
 if not os.path.exists(PDF_FOLDER):
     os.makedirs(PDF_FOLDER)
 
-# Logo UCE
+# RECURSOS GRÁFICOS
 LOGO_URL = "UCELOGO.png"
+AVATAR_URL = "avatar_uce.png" # <--- Asegúrate que esta imagen sea PNG transparente
 
 # --- 2. FUNCIONES DE LÓGICA (Backend) ---
 
@@ -146,13 +147,13 @@ def sidebar_uce():
         except:
             st.header("UCE")
             
-        # --- SECCIÓN MODIFICADA: DATOS DE FACULTAD Y CARRERA ---
+        # --- SECCIÓN FICA (No Modificada) ---
         st.markdown("## Universidad Central del Ecuador")
         
         st.markdown("### FICA")
         st.markdown("**Facultad de Ingeniería y Ciencias Aplicadas**")
         st.markdown("Carrera de Sistemas de Información")
-        # -------------------------------------------------------
+        # ------------------------------------
         
         st.divider()
         
@@ -198,8 +199,20 @@ def interfaz_gestor_archivos():
     footer_personalizado()
 
 def interfaz_chat():
-    st.header("💬 Asistente Académico UCE")
-    st.caption("Plataforma de asistencia estudiantil basada en Inteligencia Artificial.")
+    # --- ZONA DE BIENVENIDA CON AVATAR ---
+    col_avatar, col_texto = st.columns([1, 5])
+    
+    with col_avatar:
+        # Aquí mostramos el avatar un poco más grande
+        if os.path.exists(AVATAR_URL):
+            st.image(AVATAR_URL, width=110) # Ajusta este número si lo quieres más grande
+        else:
+            st.markdown("🤖")
+            
+    with col_texto:
+        st.header("💬 Asistente Académico UCE")
+        st.caption("Plataforma de asistencia estudiantil basada en Inteligencia Artificial.")
+    # -------------------------------------
     
     modelo, status = conseguir_modelo_disponible()
     if not modelo:
@@ -220,18 +233,26 @@ def interfaz_chat():
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
+    # Definir avatars para el chat
+    # Si la imagen existe, la usamos. Si no, usa el icono por defecto.
+    avatar_bot = AVATAR_URL if os.path.exists(AVATAR_URL) else "assistant"
+    avatar_user = "👤" # Icono para el estudiante
+
     for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
+        # Lógica para elegir qué imagen mostrar en la burbuja
+        icono = avatar_bot if message["role"] == "assistant" else avatar_user
+        
+        with st.chat_message(message["role"], avatar=icono):
             st.markdown(message["content"])
 
     footer_personalizado()
 
     if prompt := st.chat_input("¿En qué puedo ayudarte hoy?"):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
+        with st.chat_message("user", avatar=avatar_user):
             st.markdown(prompt)
 
-        with st.chat_message("assistant"):
+        with st.chat_message("assistant", avatar=avatar_bot):
             placeholder = st.empty()
             placeholder.markdown("🔵 *Consultando base de datos UCE...*")
             
