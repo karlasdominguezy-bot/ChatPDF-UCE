@@ -35,7 +35,6 @@ AVATAR_URL_GESTION = "avatar_uce2.gif" # GIF animado 2 (Gestión)
 
 # --- 2. FUNCIONES DE LÓGICA (Backend) ---
 
-# Función auxiliar para convertir imágenes a Base64 (Mantiene la animación)
 def get_img_as_base64(file_path):
     with open(file_path, "rb") as f:
         data = f.read()
@@ -65,11 +64,9 @@ def eliminar_archivo(nombre_archivo):
     if os.path.exists(ruta):
         os.remove(ruta)
 
-# --- OPTIMIZACIÓN DE VELOCIDAD (CACHÉ) ---
 @st.cache_resource
 def leer_pdfs_locales():
     textos, fuentes = [], []
-    # Verificación de seguridad por si la carpeta no existe
     if not os.path.exists(PDF_FOLDER): return [], []
 
     archivos = [f for f in os.listdir(PDF_FOLDER) if f.endswith('.pdf')]
@@ -158,7 +155,7 @@ def footer_personalizado():
             height: 50px !important;
         }
 
-        /* Traducción Uploader (Hack CSS) */
+        /* Traducción Uploader */
         [data-testid="stFileUploader"] section > div > div > span,
         [data-testid="stFileUploader"] section > div > div > small {
             display: none !important;
@@ -191,21 +188,30 @@ def footer_personalizado():
     """
     st.markdown(estilos, unsafe_allow_html=True)
 
+# --- NUEVA FUNCIÓN: ENCABEZADO INSTITUCIONAL ---
+# Esto pone el logo y el texto arriba, en el cuerpo principal
+def encabezado_institucional():
+    # Creamos columnas: Logo (pequeño) | Texto (Grande)
+    col_logo, col_texto = st.columns([1, 6])
+    
+    with col_logo:
+        try:
+            st.image(LOGO_URL, width=130) # Tamaño del logo institucional
+        except:
+            st.error("Logo no encontrado")
+            
+    with col_texto:
+        st.markdown("## Universidad Central del Ecuador")
+        st.markdown("#### FICA - Facultad de Ingeniería y Ciencias Aplicadas")
+        st.markdown("**Carrera de Sistemas de Información**")
+    
+    st.divider() # Línea separadora elegante
+
 # --- 4. INTERFACES GRÁFICAS ---
 
 def sidebar_uce():
     with st.sidebar:
-        try:
-            st.image(LOGO_URL, width=150)
-        except:
-            st.header("UCE")
-            
-        st.markdown("## Universidad Central del Ecuador")
-        st.markdown("### FICA")
-        st.markdown("**Facultad de Ingeniería y Ciencias Aplicadas**")
-        st.markdown("Carrera de Sistemas de Información")
-        
-        st.divider()
+        # Ya quitamos el logo y el texto de aquí, ahora solo queda la navegación
         st.title("Navegación")
         opcion = st.radio("Selecciona una opción:", ["💬 Chat con Ing. Condoi", "📂 Gestión de Bibliografía"])
         
@@ -215,22 +221,20 @@ def sidebar_uce():
 
 def interfaz_gestor_archivos():
     footer_personalizado()
+    encabezado_institucional() # <--- AQUI LLAMAMOS AL NUEVO ENCABEZADO
     
-    col_img, col_txt = st.columns([1, 4]) 
+    col_img, col_txt = st.columns([1.5, 3.5]) # Damos más espacio a la izquierda para el avatar grande
     
-    # --- ZONA DE AVATAR DE GESTIÓN (ANIMADO CON BASE64) ---
     with col_img:
         if os.path.exists(AVATAR_URL_GESTION):
-            # Usamos la técnica Base64 para el segundo GIF
             img_b64 = get_img_as_base64(AVATAR_URL_GESTION)
-            st.markdown(f'<img src="data:image/gif;base64,{img_b64}" style="width:280px; max-width: 100%;">', unsafe_allow_html=True)
+            # Aumentado a 350px
+            st.markdown(f'<img src="data:image/gif;base64,{img_b64}" style="width:350px; max-width: 100%;">', unsafe_allow_html=True)
         elif os.path.exists(AVATAR_URL):
-             # Respaldo con el GIF 1 si falla el 2
             img_b64 = get_img_as_base64(AVATAR_URL)
-            st.markdown(f'<img src="data:image/gif;base64,{img_b64}" style="width:280px; max-width: 100%;">', unsafe_allow_html=True)
+            st.markdown(f'<img src="data:image/gif;base64,{img_b64}" style="width:350px; max-width: 100%;">', unsafe_allow_html=True)
         else:
             st.markdown("📂")
-    # -------------------------------------------------------
             
     with col_txt:
         st.header("📂 Gestión de Bibliografía") 
@@ -247,7 +251,6 @@ def interfaz_gestor_archivos():
                 for file in uploaded_files: 
                     guardar_archivo(file) 
                     contador += 1 
-                # Limpiamos caché para que el bot vea los nuevos archivos
                 leer_pdfs_locales.clear()
                 st.success(f"✅ {contador} documentos aprendidos por el sistema.") 
                 st.rerun() 
@@ -262,24 +265,24 @@ def interfaz_gestor_archivos():
                 c1.text(f"📄 {f}") 
                 if c2.button("🗑️", key=f, help="Borrar"): 
                     eliminar_archivo(f) 
-                    # Limpiamos caché para que el bot olvide los archivos
                     leer_pdfs_locales.clear()
                     st.toast(f"Olvidando: {f}") 
                     st.rerun() 
 
 def interfaz_chat():
     footer_personalizado()
+    encabezado_institucional() # <--- AQUI LLAMAMOS AL NUEVO ENCABEZADO
     
-    col_avatar, col_texto = st.columns([1, 4])
+    # Ajustamos las columnas para que el Avatar tenga más espacio
+    col_avatar, col_texto = st.columns([1.5, 3.5])
     
-    # --- ZONA DE AVATAR DEL CHAT (ANIMADO CON BASE64) ---
     with col_avatar:
         if os.path.exists(AVATAR_URL):
             img_b64 = get_img_as_base64(AVATAR_URL)
-            st.markdown(f'<img src="data:image/gif;base64,{img_b64}" style="width:280px; max-width: 100%;">', unsafe_allow_html=True)
+            # Aumentado a 350px (Más grande e impactante)
+            st.markdown(f'<img src="data:image/gif;base64,{img_b64}" style="width:350px; max-width: 100%;">', unsafe_allow_html=True)
         else:
             st.markdown("🤖")
-    # ---------------------------------------------------
             
     with col_texto:
         st.header("💬 Ing. Condoi")
@@ -290,20 +293,16 @@ def interfaz_chat():
         st.error(f"Error de conexión: {status}")
         st.stop()
     
-    # --- MENSAJE DE BIENVENIDA PERMANENTE ---
-    # Ya no hay "if not archivos:", ahora sale SIEMPRE.
     st.info("""
     **🦅 ¡Hola compañero! Soy el Ing. Condoi.**
   
     * Si quieres conversar sobre algún tema en general, ¡escribe abajo!
     * Si necesitas que revise información específica, ve a **"Gestión de Bibliografía"** y dame los archivos.
     """)
-    # ----------------------------------------
     
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # Configuración de avatares para el chat (Burbujas)
     avatar_bot = AVATAR_URL if os.path.exists(AVATAR_URL) else "assistant"
     avatar_user = "👤"
 
@@ -325,7 +324,6 @@ def interfaz_chat():
                 textos, fuentes = leer_pdfs_locales()
                 contexto_pdf = buscar_informacion(prompt, textos, fuentes)
                 
-                # --- PERSONALIDAD: COMPAÑERO UNIVERSITARIO ---
                 prompt_sistema = f"""
                 Tienes una identidad definida: Eres el **Ing. Condoi**.
                 Eres el tutor virtual oficial (un águila/cóndor ingeniero) de la FICA (Facultad de Ingeniería y Ciencias Aplicadas) de la Universidad Central del Ecuador.
