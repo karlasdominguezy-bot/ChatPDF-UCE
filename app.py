@@ -127,7 +127,7 @@ def footer_personalizado():
         } 
         footer {visibility: hidden;} 
 
-        /* CSS para el avatar del chat (lo mantenemos lo más grande posible dentro del límite) */
+        /* CSS para mantener el avatar del chat lo más grande posible */
         [data-testid="stChatMessageAvatar"] {
             width: 85px !important;
             height: 85px !important;
@@ -183,11 +183,11 @@ def interfaz_gestor_archivos():
     # Inyectamos estilos 
     footer_personalizado()
     
-    # --- NUEVO ENCABEZADO CON AVATAR PARA GESTIÓN ---
-    col_img, col_txt = st.columns([1, 5])
+    # --- ENCABEZADO DE GESTIÓN (Avatar IGUAL DE GRANDE: 280px) ---
+    col_img, col_txt = st.columns([1, 4]) # Ajuste de columnas para que quepa bien
     with col_img:
         if os.path.exists(AVATAR_URL):
-            st.image(AVATAR_URL, width=150) # Tamaño mediano para gestión
+            st.image(AVATAR_URL, width=280) # ¡Ahora es igual de grande!
         else:
             st.markdown("📂")
             
@@ -229,12 +229,11 @@ def interfaz_chat():
     # Inyectar estilos 
     footer_personalizado() 
     
-    # --- CABECERA (Bienvenida con Avatar AÚN MÁS GRANDE) ---
-    col_avatar, col_texto = st.columns([1, 4]) # Ajusté columnas para dar espacio
+    # --- CABECERA DE CHAT (Avatar Grande: 280px) ---
+    col_avatar, col_texto = st.columns([1, 4]) 
     
     with col_avatar:
         if os.path.exists(AVATAR_URL):
-            # AUMENTADO A 280px (Muy grande y visible)
             st.image(AVATAR_URL, width=280) 
         else:
             st.markdown("🤖")
