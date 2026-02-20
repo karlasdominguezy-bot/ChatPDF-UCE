@@ -10,7 +10,9 @@ import base64
 
 # --- 1. CONFIGURACIÓN INICIAL ---
 load_dotenv()
-api_key = os.getenv("GOOGLE_API_KEY")
+
+# Primero intenta leer desde Streamlit Secrets
+api_key = st.secrets.get("GOOGLE_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
 st.set_page_config(
     page_title="Ing. Condoi - UCE",
@@ -355,3 +357,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
