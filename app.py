@@ -11,11 +11,11 @@ import base64
 # --- 1. CONFIGURACIÓN INICIAL ---
 load_dotenv()
 
-# Prioridad: Streamlit Secrets (para la nube) o .env (local)
+# Prioridad: Streamlit Secrets (nube) o .env (local)
 api_key = st.secrets.get("GOOGLE_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
 st.set_page_config(
-    page_title="Ing. Condoi - UCE",
+    page_title="Ing. Custodio - UCE",
     page_icon="🦅",
     layout="wide"
 )
@@ -32,10 +32,9 @@ if not os.path.exists(PDF_FOLDER):
 
 # --- RECURSOS GRÁFICOS ---
 LOGO_URL = "UCELOGO.png"
-AVATAR_URL = "avatar_uce.gif"
-AVATAR_URL_GESTION = "avatar_uce2.gif"
+AVATAR_URL = "Custodio.png" # Imagen estática según el estándar
 
-# --- 2. FUNCIONES DE LÓGICA (Backend) ---
+# --- 2. FUNCIONES DE LÓGICA ---
 
 def get_img_as_base64(file_path):
     try:
@@ -108,7 +107,7 @@ def buscar_informacion(pregunta, textos, fuentes):
 def estilos_globales():
     estilos = """
     <style>
-        .block-container { padding-top: 4rem !important; padding-bottom: 0rem !important; }
+        .block-container { padding-top: 2rem !important; padding-bottom: 0rem !important; }
         
         .footer-credits {
             position: fixed; left: 0; bottom: 0; width: 100%;
@@ -119,7 +118,7 @@ def estilos_globales():
         div[data-testid="stBottom"] { padding-bottom: 35px; background-color: transparent; }
     </style>
     <div class="footer-credits">
-        <div style="font-weight: bold; color: #002F6C;">Hecho por: Altamirano Isis, Castillo Alexander, Chalán David, Flores Bryan, Cabezas Jhampierre.</div>
+        <div style="font-weight: bold; color: #002F6C;">Hecho por: Andrango Bryan, Calero Adrián, Flores Ney, Mancero Juan.</div>
         <div style="font-size: 9px; color: #666;">Proyecto Académico | Powered by Google Gemini API</div>
     </div>
     """
@@ -132,7 +131,7 @@ def sidebar_uce():
         st.markdown("### UCE - FICA")
         st.divider()
         st.title("Navegación")
-        opcion = st.radio("Ir a:", ["💬 Chat con Ing. Condoi", "📂 Gestión de Bibliografía"])
+        opcion = st.radio("Ir a:", ["💬 Chat con Ing. Custodio", "📂 Gestión de Bibliografía"])
         return opcion
 
 def interfaz_gestor_archivos():
@@ -158,7 +157,7 @@ def interfaz_gestor_archivos():
 def interfaz_chat():
     estilos_globales()
     
-    # === ENCABEZADO: Logo UCE | Título | Avatar Condoi (Estructura Fija) ===
+    # === ENCABEZADO UNIFICADO: Logo UCE | Título | Avatar Custodio ===
     col_logo, col_titulo, col_avatar_head = st.columns([1.2, 3, 1.2])
 
     with col_logo:
@@ -169,27 +168,22 @@ def interfaz_chat():
 
     with col_titulo:
         st.markdown("""
-            <div style="padding-top: 30px;">
+            <div style="text-align: center; padding-top: 30px;">
                 <h1 style='margin-bottom: 0px; color: #002F6C; font-size: 2.5rem;'>Asistente Virtual</h1>
-                <p style='margin-top: 0px; color: gray; font-size: 16px;'>Ing. Condoi - Tu Tutor Virtual de la FICA</p>
+                <p style='margin-top: 0px; color: gray; font-size: 16px;'>Ing. Custodio - Tu Tutor Virtual de la FICA</p>
             </div>
         """, unsafe_allow_html=True)
 
     with col_avatar_head:
         if os.path.exists(AVATAR_URL):
             st.markdown('<div style="margin-top: 10px;">', unsafe_allow_html=True)
-            # Uso de base64 para asegurar la animación del GIF en el encabezado
-            img_b64 = get_img_as_base64(AVATAR_URL)
-            st.markdown(f'<img src="data:image/gif;base64,{img_b64}" width="160">', unsafe_allow_html=True)
+            st.image(AVATAR_URL, width=160) # Tamaño estándar solicitado
             st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown("---")
-
-    # === CUERPO CENTRAL: Mensaje de Bienvenida ===
-    # Cuadro de Bienvenida con borde dorado lateral
+    # === BLOQUE DE BIENVENIDA RECTIFICADO ===
     st.markdown("""
     <div style="background-color: #f0f2f6; padding: 15px; border-radius: 5px; margin-bottom: 15px; font-size: 15px; border-left: 5px solid #C59200;">
-        <strong>🦅 ¡Hola compañero! Soy el Ing. Condoi.</strong><br>
+        <strong>🦅 ¡Hola compañero! Soy el Ing. Custodio.</strong><br>
         Si quieres conversar sobre algún tema en general, ¡escribe abajo! Si necesitas que revise información específica, ve a <b>"Gestión de Bibliografía"</b> y dame los archivos.
     </div>
     """, unsafe_allow_html=True)
@@ -214,14 +208,14 @@ def interfaz_chat():
         with contenedor_chat:
             with st.chat_message("assistant", avatar=AVATAR_URL):
                 placeholder = st.empty()
-                placeholder.markdown("🦅 *Ing. Condoi analizando información...*")
+                placeholder.markdown("🦅 *Ing. Custodio analizando información...*")
                 try:
                     textos, fuentes = leer_pdfs_locales()
                     contexto = buscar_informacion(st.session_state.messages[-1]["content"], textos, fuentes)
                     
                     model = genai.GenerativeModel(modelo)
                     prompt_final = f"""
-                    Eres el Ing. Condoi de la FICA-UCE. 
+                    Eres el Ing. Custodio de la FICA-UCE. 
                     Contexto recuperado: {contexto}
                     
                     Pregunta: {st.session_state.messages[-1]['content']}
@@ -243,4 +237,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
