@@ -176,7 +176,7 @@ def interfaz_chat():
 
     with col_titulo:
         st.markdown("""
-            <div style="text-align: center; padding-top: 30px;">
+            <div style="padding-top: 30px;">
                 <h1 style='margin-bottom: 0px; color: #002F6C; font-size: 2.5rem;'>Asistente Virtual</h1>
                 <p style='margin-top: 0px; color: gray; font-size: 16px;'>Ing. Condoi - Tu Tutor Virtual de la FICA</p>
             </div>
@@ -247,3 +247,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
