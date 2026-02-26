@@ -108,7 +108,7 @@ def buscar_informacion(pregunta, textos, fuentes):
 def estilos_globales():
     estilos = """
     <style>
-        .block-container { padding-top: 3rem !important; padding-bottom: 0rem !important; }
+        .block-container { padding-top: 4rem !important; padding-bottom: 0rem !important; }
         
         .footer-credits {
             position: fixed; left: 0; bottom: 0; width: 100%;
@@ -117,16 +117,9 @@ def estilos_globales():
         }
         
         div[data-testid="stBottom"] { padding-bottom: 35px; background-color: transparent; }
-        
-        [data-testid="stFileUploader"] section > div > div > span,
-        [data-testid="stFileUploader"] section > div > div > small { display: none !important; }
-        [data-testid="stFileUploader"] section > div > div::after {
-            content: "📂 Arrastra y suelta tus archivos PDF aquí";
-            display: block; font-weight: bold; color: #444;
-        }
     </style>
     <div class="footer-credits">
-        <div style="font-weight: bold; color: #002F6C;">Hecho por: Altamirano Isis, Castillo Alexander, Chalán David, Flores Bryan, Cabezas Jhampierre</div>
+        <div style="font-weight: bold; color: #002F6C;">Hecho por: Altamirano Isis, Castillo Alexander, Chalán David, Flores Bryan, Cabezas Jhampierre.</div>
         <div style="font-size: 9px; color: #666;">Proyecto Académico | Powered by Google Gemini API</div>
     </div>
     """
@@ -144,43 +137,28 @@ def sidebar_uce():
 
 def interfaz_gestor_archivos():
     estilos_globales()
-    col_hl, col_ht = st.columns([0.8, 5])
-    with col_hl:
-        if os.path.exists(LOGO_URL): st.image(LOGO_URL, width=90)
-    with col_ht:
-        st.header("Gestión de Bibliografía")
-    
-    col_avatar, col_contenido = st.columns([1, 3])
-    with col_avatar:
-        avatar_path = AVATAR_URL_GESTION if os.path.exists(AVATAR_URL_GESTION) else AVATAR_URL
-        if os.path.exists(avatar_path):
-            img_b64 = get_img_as_base64(avatar_path)
-            st.markdown(f'<img src="data:image/gif;base64,{img_b64}" style="width:100%; max-width: 300px; border-radius: 15px;">', unsafe_allow_html=True)
-
-    with col_contenido:
-        st.info("Ayuda al Ing. Condoi a aprender subiendo los sílabos y libros aquí.")
-        uploaded_files = st.file_uploader("Cargar PDFs", type="pdf", accept_multiple_files=True)
-        if uploaded_files and st.button("Procesar Documentos", type="primary"):
+    st.header("📂 Gestión de Bibliografía")
+    uploaded_files = st.file_uploader("Cargar documentos PDF", type="pdf", accept_multiple_files=True)
+    if uploaded_files:
+        if st.button("Procesar Documentos", type="primary"):
             for f in uploaded_files: guardar_archivo(f)
             leer_pdfs_locales.clear()
             st.success("✅ Documentos aprendidos.")
             st.rerun()
-        
-        st.subheader("📚 Memoria:")
-        archivos = os.listdir(PDF_FOLDER)
-        if not archivos:
-            st.warning("No hay documentos en memoria.")
-        for f in archivos:
-            c1, c2 = st.columns([4, 1])
-            c1.text(f"📄 {f}")
-            if c2.button("🗑️", key=f):
-                eliminar_archivo(f)
-                leer_pdfs_locales.clear()
-                st.rerun()
+    
+    archivos = os.listdir(PDF_FOLDER)
+    for f in archivos:
+        c1, c2 = st.columns([4, 1])
+        c1.text(f"📄 {f}")
+        if c2.button("🗑️", key=f):
+            eliminar_archivo(f)
+            leer_pdfs_locales.clear()
+            st.rerun()
 
 def interfaz_chat():
     estilos_globales()
     
+    # === ENCABEZADO: Logo UCE | Título | Avatar Condoi (Estructura Fija) ===
     col_logo, col_titulo, col_avatar_head = st.columns([1.2, 3, 1.2])
 
     with col_logo:
@@ -200,13 +178,14 @@ def interfaz_chat():
     with col_avatar_head:
         if os.path.exists(AVATAR_URL):
             st.markdown('<div style="margin-top: 10px;">', unsafe_allow_html=True)
-            # Se usa markdown con base64 para asegurar que el GIF se anime correctamente
+            # Uso de base64 para asegurar la animación del GIF en el encabezado
             img_b64 = get_img_as_base64(AVATAR_URL)
             st.markdown(f'<img src="data:image/gif;base64,{img_b64}" width="160">', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("---")
 
+    # === CUERPO CENTRAL: Mensaje de Bienvenida ===
     st.markdown("""
     <div style="background-color: #f0f2f6; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 5px solid #C59200;">
         <strong>🦅 ¡Hola compañero! Soy el Ing. Condoi.</strong><br>
@@ -221,7 +200,6 @@ def interfaz_chat():
 
     with contenedor_chat:
         for m in st.session_state.messages:
-            # Avatar dinámico para el bot (el GIF)
             avatar_display = AVATAR_URL if m["role"]=="assistant" else "👤"
             with st.chat_message(m["role"], avatar=avatar_display):
                 st.markdown(m["content"])
@@ -242,18 +220,18 @@ def interfaz_chat():
                     
                     model = genai.GenerativeModel(modelo)
                     prompt_final = f"""
-                    Eres el Ing. Condoi, tutor virtual de la FICA-UCE. 
-                    Tu tono es académico pero cercano (amigo universitario).
-                    Contexto recuperado de los archivos: {contexto}
+                    Eres el Ing. Condoi de la FICA-UCE. 
+                    Contexto recuperado: {contexto}
                     
-                    Pregunta del estudiante: {st.session_state.messages[-1]['content']}
+                    Pregunta: {st.session_state.messages[-1]['content']}
+                    Responde como un tutor académico profesional pero accesible.
                     """
                     
                     response = model.generate_content(prompt_final)
                     placeholder.markdown(response.text)
                     st.session_state.messages.append({"role": "assistant", "content": response.text})
                 except Exception as e:
-                    st.error(f"Error en la generación: {e}")
+                    st.error(f"Error: {e}")
 
 def main():
     opcion = sidebar_uce()
