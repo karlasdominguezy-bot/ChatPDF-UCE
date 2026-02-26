@@ -186,10 +186,11 @@ def interfaz_chat():
     st.markdown("---")
 
     # === CUERPO CENTRAL: Mensaje de Bienvenida ===
+    # Cuadro de Bienvenida con borde dorado lateral
     st.markdown("""
-    <div style="background-color: #f0f2f6; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 5px solid #C59200;">
+    <div style="background-color: #f0f2f6; padding: 15px; border-radius: 5px; margin-bottom: 15px; font-size: 15px; border-left: 5px solid #C59200;">
         <strong>🦅 ¡Hola compañero! Soy el Ing. Condoi.</strong><br>
-        Estoy aquí para ayudarte con tus dudas académicas. Si necesitas que analice un documento específico, súbelo en la sección de bibliografía.
+        Si quieres conversar sobre algún tema en general, ¡escribe abajo! Si necesitas que revise información específica, ve a <b>"Gestión de Bibliografía"</b> y dame los archivos.
     </div>
     """, unsafe_allow_html=True)
 
@@ -242,3 +243,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
