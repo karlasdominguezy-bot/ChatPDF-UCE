@@ -177,7 +177,7 @@ def interfaz_chat():
     with col_avatar_head:
         if os.path.exists(AVATAR_URL):
             st.markdown('<div style="margin-top: 10px;">', unsafe_allow_html=True)
-            st.image(AVATAR_URL, width=160) # Tamaño estándar solicitado
+            st.image(AVATAR_URL, width=210) 
             st.markdown('</div>', unsafe_allow_html=True)
 
     # === BLOQUE DE BIENVENIDA RECTIFICADO ===
@@ -237,3 +237,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
